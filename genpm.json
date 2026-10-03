@@ -1,0 +1,22 @@
+{
+  "$": 1,
+  "n": "@core/billing",
+  "v": "1.0.0",
+  "s": {
+    "en": "Stripe subscriptions: checkout, portal and idempotent webhooks with Drizzle",
+    "es": "Suscripciones de Stripe: checkout, portal y webhooks idempotentes con Drizzle",
+    "pt-BR": "Assinaturas Stripe: checkout, portal e webhooks idempotentes com Drizzle",
+    "fr": "Abonnements Stripe : checkout, portail et webhooks idempotents avec Drizzle",
+    "de": "Stripe-Abos: Checkout, Kundenportal und idempotente Webhooks mit Drizzle",
+    "ja": "Stripe サブスクリプション：チェックアウト、ポータル、冪等な Webhook（Drizzle）",
+    "zh-CN": "Stripe 订阅：结账、客户门户和幂等 Webhook（Drizzle）",
+    "ko": "Stripe 구독: 결제, 고객 포털, 멱등 웹훅(Drizzle)"
+  },
+  "d": "src/lib/billing",
+  "l": "MIT",
+  "k": ["billing", "stripe", "subscriptions", "webhooks", "payments"],
+  "g": { "@core/db": "^1.0.0", "@core/auth": "^1.0.0" },
+  "p": { "stripe": "^23.0.0" },
+  "e": ["STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET"],
+  "m": [{ "n": "stripe", "c": "npx", "a": ["-y", "@stripe/mcp"], "e": ["STRIPE_SECRET_KEY"] }]
+}
