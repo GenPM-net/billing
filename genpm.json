@@ -1,7 +1,7 @@
 {
   "$": 1,
   "n": "@core/billing",
-  "v": "1.0.0",
+  "v": "1.0.1",
   "s": {
     "en": "Stripe subscriptions: checkout, portal and idempotent webhooks with Drizzle",
     "es": "Suscripciones de Stripe: checkout, portal y webhooks idempotentes con Drizzle",

@@ -100,7 +100,9 @@ export async function handleStripeWebhook(rawBody: string, signature: string | n
       case 'customer.subscription.created':
       case 'customer.subscription.updated':
       case 'customer.subscription.deleted':
-        await syncSubscription(event.data.object, tx);
+        // Stripe no garantiza el orden de entrega: se guarda el estado actual, no la instantánea del evento, para que
+        // un evento viejo que llegue tarde no pise uno más nuevo.
+        await syncSubscription(await getStripe().subscriptions.retrieve(event.data.object.id), tx);
         break;
       case 'checkout.session.completed': {
         const s = event.data.object;

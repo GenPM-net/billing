@@ -32,7 +32,12 @@ const subscription = (id: string, status: string, price = 'price_pro', userId = 
     items: { data: [{ price: { id: price }, current_period_end: 1_900_000_000 }] },
   }) as unknown as Stripe.Subscription;
 
+// Estado "actual" en Stripe: el webhook lo consulta en vez de fiarse de la instantánea del evento.
+const current = new Map<string, Stripe.Subscription>();
+
 function signed(event: { id: string; type: string; data: { object: unknown } }) {
+  const obj = event.data.object as Stripe.Subscription;
+  if (obj?.object === 'subscription') current.set(obj.id, obj);
   const payload = JSON.stringify({ object: 'event', api_version: '2026-09-30', ...event });
   return { payload, header: stripe.webhooks.generateTestHeaderString({ payload, secret: SECRET }) };
 }
@@ -42,6 +47,8 @@ beforeEach(async () => {
   await testDb(authSchema, schema);
   stripe = new Stripe('sk_test_123');
   setStripe(stripe);
+  current.clear();
+  vi.spyOn(stripe.subscriptions, 'retrieve').mockImplementation((async (id: string) => current.get(id)) as never);
   user = await upsertOAuthUser('github', { id: '1', email: 'a@x.dev', emailVerified: true, name: 'A', avatarUrl: null });
   for (const k of Object.keys(FEATURES_BY_PRICE)) delete FEATURES_BY_PRICE[k];
   FEATURES_BY_PRICE['price_pro'] = ['pro', 'export'];
@@ -124,5 +131,15 @@ describe('adapters', () => {
     const ev = signed({ id: 'evt_5', type: 'customer.subscription.created', data: { object: subscription('sub_3', 'active') } });
     const res = await webhookRoute(new Request('https://a/billing/webhook', { method: 'POST', body: ev.payload, headers: { 'stripe-signature': ev.header } }));
     expect(await res.json()).toMatchObject({ received: true, duplicate: false });
+  });
+});
+
+describe('webhooks fuera de orden', () => {
+  it('un evento viejo que llega tarde no pisa el estado actual', async () => {
+    const created = signed({ id: 'evt_a', type: 'customer.subscription.created', data: { object: subscription('sub_9', 'active') } });
+    const deleted = signed({ id: 'evt_b', type: 'customer.subscription.deleted', data: { object: subscription('sub_9', 'canceled') } });
+    await handleStripeWebhook(deleted.payload, deleted.header);
+    await handleStripeWebhook(created.payload, created.header);
+    expect(await hasEntitlement(user, 'pro')).toBe(false);
   });
 });
