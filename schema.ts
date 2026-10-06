@@ -1,7 +1,7 @@
 // Tablas de @core/billing. Stripe es la fuente de verdad; aquí hay una copia sincronizada por webhooks.
 import { boolean, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
-import { users } from '../auth/schema.js';
-import { timestamps } from '../db/index.js';
+import { users } from '../auth/schema.ts';
+import { timestamps } from '../db/index.ts';
 
 export const billingCustomers = pgTable('billing_customers', {
   userId: text('user_id')

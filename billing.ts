@@ -1,12 +1,12 @@
 // Checkout, portal, webhooks idempotentes y entitlements. Sin framework: los adaptadores solo traducen HTTP.
 import { and, eq, inArray } from 'drizzle-orm';
 import type Stripe from 'stripe';
-import type { User } from '../auth/index.js';
-import { type Executor, getDb } from '../db/index.js';
-import { onStripeEvent } from '../stripe/index.js';
-import { ACTIVE_STATUSES, FEATURES_BY_PRICE } from './plans.js';
-import { billingCustomers, type Subscription, subscriptions } from './schema.js';
-import { getStripe } from './stripe.js';
+import type { User } from '../auth/index.ts';
+import { type Executor, getDb } from '../db/index.ts';
+import { onStripeEvent } from '../stripe/index.ts';
+import { ACTIVE_STATUSES, FEATURES_BY_PRICE } from './plans.ts';
+import { billingCustomers, type Subscription, subscriptions } from './schema.ts';
+import { getStripe } from './stripe.ts';
 
 /** Cliente de Stripe del usuario; lo crea la primera vez (con `metadata.userId` para poder volver al usuario). */
 export async function ensureCustomer(user: Pick<User, 'id' | 'email' | 'name'>, db: Executor = getDb()): Promise<string> {
