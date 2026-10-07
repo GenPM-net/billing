@@ -1,15 +1,14 @@
-// @core/billing — API pública. Configura los precios en plans.ts; rutas en adapters/hono.ts y adapters/next.ts.
+// @core/billing 2.0 — API pública. Configura los precios en plans.ts; rutas en adapters/hono.ts y adapters/next.ts.
 export {
   activeSubscriptions,
   createCheckoutSession,
   createPortalSession,
   ensureCustomer,
-  handleStripeWebhook,
   hasEntitlement,
   syncSubscription,
-  WebhookSignatureError,
-  type WebhookResult,
-} from './billing.js';
-export { ACTIVE_STATUSES, FEATURES_BY_PRICE } from './plans.js';
-export { billingCustomers, type Subscription, stripeEvents, subscriptions } from './schema.js';
-export { getStripe, setStripe } from './stripe.js';
+} from './billing.ts';
+// Compatibilidad con 1.x: el webhook y su tabla viven ahora en @core/stripe.
+export { handleStripeWebhook, stripeEvents, type WebhookResult, WebhookSignatureError } from '../stripe/index.ts';
+export { ACTIVE_STATUSES, FEATURES_BY_PRICE } from './plans.ts';
+export { billingCustomers, type Subscription, subscriptions } from './schema.ts';
+export { getStripe, setStripe } from './stripe.ts';

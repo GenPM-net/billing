@@ -1,7 +1,7 @@
 {
   "$": 1,
   "n": "@core/billing",
-  "v": "1.0.1",
+  "v": "2.0.0",
   "s": {
     "en": "Stripe subscriptions: checkout, portal and idempotent webhooks with Drizzle",
     "es": "Suscripciones de Stripe: checkout, portal y webhooks idempotentes con Drizzle",
@@ -14,9 +14,36 @@
   },
   "d": "src/lib/billing",
   "l": "MIT",
-  "k": ["billing", "stripe", "subscriptions", "webhooks", "payments"],
-  "g": { "@core/db": "^1.0.0", "@core/auth": "^1.0.0" },
-  "p": { "stripe": "^23.0.0" },
-  "e": ["STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET"],
-  "m": [{ "n": "stripe", "c": "npx", "a": ["-y", "@stripe/mcp"], "e": ["STRIPE_SECRET_KEY"] }]
+  "k": [
+    "billing",
+    "stripe",
+    "subscriptions",
+    "webhooks",
+    "payments"
+  ],
+  "g": {
+    "@core/db": "^1.0.0",
+    "@core/auth": "^1.0.0",
+    "@core/stripe": "^1.0.0"
+  },
+  "p": {
+    "stripe": "^23.0.0"
+  },
+  "e": [
+    "STRIPE_SECRET_KEY",
+    "STRIPE_WEBHOOK_SECRET"
+  ],
+  "m": [
+    {
+      "n": "stripe",
+      "c": "npx",
+      "a": [
+        "-y",
+        "@stripe/mcp"
+      ],
+      "e": [
+        "STRIPE_SECRET_KEY"
+      ]
+    }
+  ]
 }

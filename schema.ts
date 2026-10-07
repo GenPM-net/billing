@@ -1,7 +1,7 @@
 // Tablas de @core/billing. Stripe es la fuente de verdad; aquí hay una copia sincronizada por webhooks.
 import { boolean, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
-import { users } from '../auth/schema.js';
-import { timestamps } from '../db/index.js';
+import { users } from '../auth/schema.ts';
+import { timestamps } from '../db/index.ts';
 
 export const billingCustomers = pgTable('billing_customers', {
   userId: text('user_id')
@@ -24,11 +24,6 @@ export const subscriptions = pgTable('subscriptions', {
   ...timestamps,
 });
 
-/** Idempotencia: cada evento de Stripe se procesa una sola vez aunque llegue repetido. */
-export const stripeEvents = pgTable('stripe_events', {
-  id: text('id').primaryKey(),
-  type: text('type').notNull(),
-  processedAt: timestamp('processed_at', { withTimezone: true, mode: 'date' }).notNull().defaultNow(),
-});
+// `stripe_events` pasó a @core/stripe en la 2.0 (misma tabla y columnas: sin migración de datos).
 
 export type Subscription = typeof subscriptions.$inferSelect;

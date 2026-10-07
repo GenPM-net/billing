@@ -1,8 +1,8 @@
 // Adaptador Hono. Requiere `sessionMiddleware` de @core/auth antes: `app.route('/billing', billingRoutes())`.
 import type { Context } from 'hono';
 import { Hono } from 'hono';
-import type { AuthVariables } from '../../auth/adapters/hono.js';
-import { createCheckoutSession, createPortalSession, handleStripeWebhook, WebhookSignatureError } from '../index.js';
+import type { AuthVariables } from '../../auth/adapters/hono.ts';
+import { createCheckoutSession, createPortalSession, handleStripeWebhook, WebhookSignatureError } from '../index.ts';
 
 type Env = { Variables: AuthVariables };
 

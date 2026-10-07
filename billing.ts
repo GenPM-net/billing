@@ -1,11 +1,12 @@
 // Checkout, portal, webhooks idempotentes y entitlements. Sin framework: los adaptadores solo traducen HTTP.
 import { and, eq, inArray } from 'drizzle-orm';
 import type Stripe from 'stripe';
-import type { User } from '../auth/index.js';
-import { type Executor, getDb, withTransaction } from '../db/index.js';
-import { ACTIVE_STATUSES, FEATURES_BY_PRICE } from './plans.js';
-import { billingCustomers, type Subscription, stripeEvents, subscriptions } from './schema.js';
-import { getStripe } from './stripe.js';
+import type { User } from '../auth/index.ts';
+import { type Executor, getDb } from '../db/index.ts';
+import { onStripeEvent } from '../stripe/index.ts';
+import { ACTIVE_STATUSES, FEATURES_BY_PRICE } from './plans.ts';
+import { billingCustomers, type Subscription, subscriptions } from './schema.ts';
+import { getStripe } from './stripe.ts';
 
 /** Cliente de Stripe del usuario; lo crea la primera vez (con `metadata.userId` para poder volver al usuario). */
 export async function ensureCustomer(user: Pick<User, 'id' | 'email' | 'name'>, db: Executor = getDb()): Promise<string> {
@@ -73,51 +74,21 @@ export async function syncSubscription(sub: Stripe.Subscription, db: Executor = 
     .onConflictDoUpdate({ target: subscriptions.id, set: values });
 }
 
-export type WebhookResult = { received: true; duplicate: boolean; type: string };
+// Webhooks: el endpoint, la firma y la idempotencia son de @core/stripe; billing solo registra sus manejadores.
+// Stripe no garantiza el orden de entrega: se guarda el estado actual, no la instantánea del evento, para que un
+// evento viejo que llegue tarde no pise uno más nuevo.
+onStripeEvent(['customer.subscription.created', 'customer.subscription.updated', 'customer.subscription.deleted'], async (event, tx) => {
+  const sub = event.data.object as Stripe.Subscription;
+  await syncSubscription(await getStripe().subscriptions.retrieve(sub.id), tx);
+});
 
-/**
- * Verifica la firma del webhook y procesa el evento UNA vez: el registro en `stripe_events` y los cambios van en la
- * misma transacción, así que si algo falla Stripe reintenta y se vuelve a procesar.
- */
-export async function handleStripeWebhook(rawBody: string, signature: string | null): Promise<WebhookResult> {
-  const secret = process.env.STRIPE_WEBHOOK_SECRET;
-  if (!secret) throw new Error('STRIPE_WEBHOOK_SECRET is not set');
-  if (!signature) throw new WebhookSignatureError('missing stripe-signature header');
-  let event: Stripe.Event;
-  try {
-    event = await getStripe().webhooks.constructEventAsync(rawBody, signature, secret);
-  } catch {
-    throw new WebhookSignatureError('invalid signature');
+onStripeEvent('checkout.session.completed', async (event, tx) => {
+  const s = event.data.object as Stripe.Checkout.Session;
+  if (s.mode === 'subscription' && s.subscription) {
+    const id = typeof s.subscription === 'string' ? s.subscription : s.subscription.id;
+    await syncSubscription(await getStripe().subscriptions.retrieve(id), tx);
   }
-  return withTransaction(async (tx) => {
-    const inserted = await tx
-      .insert(stripeEvents)
-      .values({ id: event.id, type: event.type })
-      .onConflictDoNothing()
-      .returning({ id: stripeEvents.id });
-    if (inserted.length === 0) return { received: true, duplicate: true, type: event.type };
-    switch (event.type) {
-      case 'customer.subscription.created':
-      case 'customer.subscription.updated':
-      case 'customer.subscription.deleted':
-        // Stripe no garantiza el orden de entrega: se guarda el estado actual, no la instantánea del evento, para que
-        // un evento viejo que llegue tarde no pise uno más nuevo.
-        await syncSubscription(await getStripe().subscriptions.retrieve(event.data.object.id), tx);
-        break;
-      case 'checkout.session.completed': {
-        const s = event.data.object;
-        if (s.mode === 'subscription' && s.subscription) {
-          const id = typeof s.subscription === 'string' ? s.subscription : s.subscription.id;
-          await syncSubscription(await getStripe().subscriptions.retrieve(id), tx);
-        }
-        break;
-      }
-    }
-    return { received: true, duplicate: false, type: event.type };
-  });
-}
-
-export class WebhookSignatureError extends Error {}
+});
 
 export async function activeSubscriptions(userId: string, db: Executor = getDb()): Promise<Subscription[]> {
   return db

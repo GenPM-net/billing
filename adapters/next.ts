@@ -2,8 +2,8 @@
 //   app/billing/checkout/route.ts → export const POST = checkoutRoute;
 //   app/billing/portal/route.ts   → export const POST = portalRoute;
 //   app/billing/webhook/route.ts  → export const POST = webhookRoute;
-import { getUserFromCookieHeader } from '../../auth/index.js';
-import { createCheckoutSession, createPortalSession, handleStripeWebhook, WebhookSignatureError } from '../index.js';
+import { getUserFromCookieHeader } from '../../auth/index.ts';
+import { createCheckoutSession, createPortalSession, handleStripeWebhook, WebhookSignatureError } from '../index.ts';
 
 const json = (body: unknown, status = 200) => Response.json(body, { status });
 

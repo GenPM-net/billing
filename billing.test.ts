@@ -1,12 +1,12 @@
 import { Hono } from 'hono';
 import Stripe from 'stripe';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { sessionMiddleware } from '../auth/adapters/hono.js';
-import { createSession, generateSessionToken, upsertOAuthUser } from '../auth/index.js';
-import * as authSchema from '../auth/schema.js';
-import { testDb } from '../db/__fixtures__/pglite.js';
-import { billingRoutes } from './adapters/hono.js';
-import { webhookRoute } from './adapters/next.js';
+import { sessionMiddleware } from '../auth/adapters/hono.ts';
+import { createSession, generateSessionToken, upsertOAuthUser } from '../auth/index.ts';
+import * as authSchema from '../auth/schema.ts';
+import { testDb } from '../db/__fixtures__/pglite.ts';
+import { billingRoutes } from './adapters/hono.ts';
+import { webhookRoute } from './adapters/next.ts';
 import {
   createCheckoutSession,
   FEATURES_BY_PRICE,
@@ -14,8 +14,9 @@ import {
   hasEntitlement,
   setStripe,
   WebhookSignatureError,
-} from './index.js';
-import * as schema from './schema.js';
+} from './index.ts';
+import * as schema from './schema.ts';
+import * as stripeSchema from '../stripe/schema.ts';
 
 const SECRET = 'whsec_test';
 let stripe: Stripe;
@@ -44,7 +45,7 @@ function signed(event: { id: string; type: string; data: { object: unknown } }) 
 
 beforeEach(async () => {
   process.env.STRIPE_WEBHOOK_SECRET = SECRET;
-  await testDb(authSchema, schema);
+  await testDb(authSchema, stripeSchema, schema);
   stripe = new Stripe('sk_test_123');
   setStripe(stripe);
   current.clear();

@@ -25,6 +25,12 @@ invoices UI or taxes logic (configure those in Stripe).
 6. Gate features: `if (!(await hasEntitlement(user, 'pro'))) return c.json({ error: 'upgrade' }, 402)`.
 7. Frontend: `POST /billing/checkout {priceId}` returns `{url}`; redirect the browser there.
 
+### Upgrading from 1.x
+2.0 depends on @core/stripe, which now owns the Stripe client, the webhook verification and the `stripe_events`
+table (same name and columns: no data migration). Install @core/stripe, keep your existing `/billing/webhook` route
+(it delegates to @core/stripe) or point Stripe to `/api/stripe/webhook`; both process each event once. Other modules
+(e.g. @core/checkout) receive their events through the same endpoint.
+
 ## Conventions
 - Read subscription state from the database (`hasEntitlement`, `activeSubscriptions`), never from Stripe on each request.
 - All Stripe writes go through this module; keep amounts and prices in Stripe, not in code.
